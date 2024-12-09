@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Calculator and Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+        .container {
+            position: relative;
+            max-width: 340px;
+            width: 100%;
+            border-radius: 12px;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .tab-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 6px;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        .tab-buttons button.active {
+            background-color: #2a5298;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .display {
+            height: 80px;
+            width: 100%;
+            outline: none;
+            border: none;
+            text-align: right;
+            margin-bottom: 10px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .buttons {
+            display: grid;
+            grid-gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .buttons button {
+            padding: 15px;
+            border-radius: 8px;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #e0e7ff;
+            color: #333;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        .buttons button:hover {
+            background-color: #c7d2fe;
+        }
+        .buttons button:active {
+            transform: scale(0.97);
+        }
+        .operator {
+            color: #ffffff;
+            background-color: #4f46e5;
+        }
+        .operator:hover {
+            background-color: #4338ca;
+        }
+        .converter {
+            display: none;
+        }
+        .converter.active {
+            display: block;
+        }
+        .converter input,
+        .converter select {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .converter button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .converter button:hover {
+            background-color: #4338ca;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="tab-buttons">
+        <button id="calculator-tab" class="active">Calculator</button>
+        <button id="converter-tab">Converter</button>
+    </div>
+
+    <!-- Calculator Section -->
+    <div class="calculator">
+        <input type="text" class="display"/>
+
+        <div class="buttons">
+            <button class="operator" data-value="AC">AC</button>
+            <button class="operator" data-value="DEL">DEL</button>
+            <button class="operator" data-value="%">%</button>
+            <button class="operator" data-value="/">/</button>
+
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button class="operator" data-value="*">*</button>
+
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button class="operator" data-value="-">-</button>
+
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
+
+            <button data-value="0">0</button>
+            <button data-value="00">00</button>
+            <button data-value=".">.</button>
+            <button class="operator" data-value="=">=</button>
+        </div>
+    </div>
+
+    <!-- Converter Section -->
+    <div class="converter">
+        <select id="conversion-type">
+            <option value="temp">Temperature (C to F)</option>
+            <option value="distance">Distance (Km to Miles)</option>
+        </select>
+        <input type="number" id="input-value" placeholder="Enter value"/>
+        <button id="convert-button">Convert</button>
+        <input type="text" id="output-value" placeholder="Result" readonly/>
+    </div>
+</div>
+
+<script>
+    // Переключение между калькулятором и конвертером
+    const calculatorTab = document.getElementById("calculator-tab");
+    const converterTab = document.getElementById("converter-tab");
+    const calculator = document.querySelector(".calculator");
+    const converter = document.querySelector(".converter");
+    const display = document.querySelector(".display");
+    const buttons = document.querySelectorAll(".buttons button");
+    const specialChars = ["%", "*", "/", "-", "+", "="];
+    let output = "";
+
+    // Обработчик переключения вкладок калькулятора и конвертера
+    calculatorTab.addEventListener("click", () => {
+        calculatorTab.classList.add("active");
+        converterTab.classList.remove("active");
+        calculator.style.display = "block";
+        converter.style.display = "none";
+    });
+
+    converterTab.addEventListener("click", () => {
+        converterTab.classList.add("active");
+        calculatorTab.classList.remove("active");
+        converter.style.display = "block";
+        calculator.style.display = "none";
+    });
+
+    function calculateExpression(expression) {
+        // Заменяем проценты на деление на 100
+        expression = expression.replace("%", "/100");
+        // Создаем новый объект функции для вычисления
+        try {
+            const result = new Function('return ' + expression)();
+            return result;
+        } catch (e) {
+            return "Error";
+        }
+    }
+
+    // Функция для обработки вычислений калькулятора
+    const calculate = (btnValue) => {
+        display.focus();
+
+        // Если нажали "=", выполняем вычисление
+        if (btnValue === "=" && output !== "") {
+            output = calculateExpression(output);
+        }
+        // Если нажали "AC", очищаем все
+        else if (btnValue === "AC") {
+            output = "";
+        }
+        // Если нажали "DEL", удаляем последний символ
+        else if (btnValue === "DEL") {
+            output = output.toString().slice(0, -1);
+        }
+        // Если это оператор, проверяем, что предыдущий символ не является оператором
+        else if (specialChars.includes(btnValue)) {
+            // Если последний символ тоже оператор, ничего не делаем
+            if (specialChars.includes(output.slice(-1))) {
+                return;
+            }
+            output += btnValue;
+        } else {
+            // Для обычных цифр и других символов, просто добавляем в строку
+            output += btnValue;
+        }
+        display.value = output;
+    };
+
+    buttons.forEach((button) => {
+        button.addEventListener("click", (e) => calculate(e.target.dataset.value));
+    });
+
+    // Функция для выполнения конверсии
+    const convertButton = document.getElementById("convert-button");
+    const conversionType = document.getElementById("conversion-type");
+    const inputValue = document.getElementById("input-value");
+    const outputValue = document.getElementById("output-value");
+
+    convertButton.addEventListener("click", () => {
+        const value = parseFloat(inputValue.value);
+        if (!inputValue.value.trim()) {
+            outputValue.value = "Please enter a value";
+            return;
+        }
+        if (isNaN(value)) {
+            outputValue.value = "Invalid input";
+            return;
+        }
+
+        let result;
+        if (conversionType.value === "temp") {
+            result = (value * 9) / 5 + 32; // Конвертация температуры из Цельсия в Фаренгейт
+        } else if (conversionType.value === "distance") {
+            result = value * 0.621371; // Конвертация расстояния из километров в мили
+        }
+
+        outputValue.value = result.toFixed(2);
+    });
+</script>
+</body>
+</html>
